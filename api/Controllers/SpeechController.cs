@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using speech.api.Controllers;
 
 namespace api.Controllers
 {
