@@ -8,6 +8,7 @@ Docker Desktop -> settings -> resources -> Advanced
 ## Vosk/kaldi server
 Use WebSocket server `docker run -d -p 2700:2700 alphacep/kaldi-ru:latest`. In project this server run from `docker-compose`
 - https://alphacephei.com/vosk/install
+- https://alphacephei.com/vosk/models
 - https://github.com/alphacep/vosk-server
 - https://github.com/alphacep/vosk-api
 
