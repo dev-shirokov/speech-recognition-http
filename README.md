@@ -15,6 +15,8 @@ WebSocket server `docker run -d -p 2700:2700 --name kaldi_ru alphacep/kaldi-ru:l
 
 ## How it works
 
+![](res/speech-recogn.svg)
+
 Attach audio file and execute request: 
 ```
 curl -X 'POST' \
