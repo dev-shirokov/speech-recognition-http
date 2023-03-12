@@ -1,4 +1,5 @@
 using api.Controllers;
+using api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,9 +9,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<ServiceEndpointsOptions>(builder.Configuration.GetSection(ServiceEndpointsOptions.Position));
 
+builder.Services.AddTransient<IKaldiAdapter, KaldiAdapter>();
+
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
