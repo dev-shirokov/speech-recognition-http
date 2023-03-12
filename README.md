@@ -6,7 +6,7 @@ Docker Desktop -> settings -> resources -> Advanced
     change RAM to 8Gb+
 
 ## Vosk/kaldi server
-WebSocket server `docker run -d -p 2700:2700 --name kaldi_ru alphacep/kaldi-ru:latest`
+Use WebSocket server `docker run -d -p 2700:2700 alphacep/kaldi-ru:latest`. In project this server run from `docker-compose`
 - https://alphacephei.com/vosk/install
 - https://github.com/alphacep/vosk-server
 - https://github.com/alphacep/vosk-api
@@ -14,8 +14,7 @@ WebSocket server `docker run -d -p 2700:2700 --name kaldi_ru alphacep/kaldi-ru:l
 **IMPORTANT**: the server only processes audio in the format **WAV**, codec **PCM**, channels **MONO 16bit**, frequency **8khz**
 
 ## How it works
-
-![](res/speech-recogn.svg)
+Run from directory of solution `docker-compose up -d`
 
 Attach audio file and execute request: 
 ```
@@ -58,6 +57,8 @@ Response
   "partial": null
 }
 ```
+
+![](res/speech-recogn.svg)
 
 ## Helpers
 https://convertio.co/ - help convert files to the desired format
