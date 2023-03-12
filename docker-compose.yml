@@ -1,0 +1,49 @@
+version: '3.4'
+
+services:
+
+  speech.api:
+    container_name: speech.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=P@ssw0rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ServiceEndpoints__VoskKaldiRu=ws://kaldi.ru.websocket:2700/
+      - ConnectionString__PgSql=Server=pg.db;Port=5432;Database=speech.api.db;User Id=service-user;Password=P@ssw0rd;
+    image: ${DOCKER_REGISTRY-}speechapi
+    build:
+      context: .
+      dockerfile: speech.api/Dockerfile
+    depends_on:
+      - kaldi.ru.websocket
+      - postgres
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - C:/Users/ximlr/.aspnet/https:/https/  
+
+  kaldi.ru.websocket:
+    container_name: kaldi.ws
+    image: alphacep/kaldi-ru:latest
+
+  postgres:
+    container_name: pg.db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: service-user
+      POSTGRES_PASSWORD: P@ssw0rd      
+      POSTGRES_DB: speech.api.db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+  postgres.adminer:
+    container_name: pg.adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  pgdata:    
