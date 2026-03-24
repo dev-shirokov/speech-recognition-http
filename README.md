@@ -5,6 +5,13 @@ Docker Desktop -> settings -> resources -> Advanced
 
     change RAM to 8Gb+
 
+OR create/edit file '.wslconfig' 
+
+```
+[wsl2]
+memory=8GB   # Limits VM memory in WSL 2 
+```
+
 ## Vosk/kaldi server
 Use WebSocket server `docker run -d -p 2700:2700 alphacep/kaldi-ru:latest`. In project this server run from `docker-compose`
 - https://alphacephei.com/vosk/install
@@ -62,4 +69,5 @@ Response
 ![](res/speech-recogn.svg)
 
 ## Helpers
-https://convertio.co/ - help convert files to the desired format
+https://convertio.co/ - helps convert files to the desired format
+https://luvvoice.com/ru - helps voice generating

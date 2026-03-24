@@ -1,54 +1,115 @@
-﻿using api.Controllers;
-using api.Models;
+﻿using api.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.WebSockets;
 using System.Text;
 
 namespace api.Services;
+
 public class KaldiAdapter : IKaldiAdapter
 {
-    private readonly string _endpoint;
+    readonly string _kaldiEndpoint;
 
     public KaldiAdapter(IOptions<ServiceEndpointsOptions> serviceEndpointsOptions)
     {
-        _endpoint = serviceEndpointsOptions.Value.VoskKaldiRu;
+        _kaldiEndpoint = serviceEndpointsOptions.Value.VoskKaldiRu;
     }
 
-    public async Task<KaldiResult?> Recognize(IFormFile file)
+    public async Task<KaldiResult?> Recognize(byte[] fileBytes, CancellationToken token)
     {
         KaldiResult? result = null;
-
-        using var ms = new MemoryStream();
-        await file.CopyToAsync(ms);
-        var fileBytes = ms.ToArray();
 
         var ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri(_endpoint), CancellationToken.None);
+            await ws.ConnectAsync(new Uri(_kaldiEndpoint), token);
 
-            await ProcessData(ws, fileBytes, fileBytes.Length);
-            result = await ProcessFinalData(ws);
+            await ProcessData(ws, fileBytes, fileBytes.Length, token);
 
-            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "OK", CancellationToken.None);
+            result = await ProcessFinalData(ws, token);
+
+            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "OK", token);
         }
         catch (Exception ex)
         {
             Console.WriteLine("Exception: {0}", ex);
             throw;
         }
+        finally
+        {
+            ws.Dispose();
+        }
 
         return result;
     }
-    async Task<KaldiResult?> ReceiveResult(ClientWebSocket ws)
+
+    public async Task<KaldiResult?> Recognize(Stream inputStream, CancellationToken token)
+    {
+        KaldiResult? result = null;
+
+        var ws = new ClientWebSocket();
+        try
+        {
+            await ws.ConnectAsync(new Uri(_kaldiEndpoint), token);
+
+            await ProcessData(ws, inputStream, token);
+
+            result = await ProcessFinalData(ws, token);
+
+            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "OK", token);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception: {0}", ex);
+            throw;
+        }
+        finally
+        {
+            ws.Dispose();
+        }
+
+
+        return result;
+    }
+
+    async Task ProcessData(ClientWebSocket webSocket, Stream inputStream, CancellationToken token)
+    {
+        const int BufferSize = 4096;
+        var buffer = new byte[BufferSize];
+        int bytesRead;
+
+        while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
+        {
+            var segment = new ArraySegment<byte>(buffer, 0, bytesRead);
+
+            bool isMessageEnd = (inputStream.Position == inputStream.Length);
+
+            await webSocket.SendAsync(
+                segment,
+                WebSocketMessageType.Binary,
+                isMessageEnd,
+                token);
+        }
+
+        await ReceiveResult(webSocket, token);
+
+    }
+
+
+    async Task ProcessData(ClientWebSocket webSocket, byte[] data, int count, CancellationToken token)
+    {
+        await webSocket.SendAsync(new ArraySegment<byte>(data, 0, count), WebSocketMessageType.Binary, true, CancellationToken.None);
+        await ReceiveResult(webSocket, token);
+    }
+
+    async Task<KaldiResult?> ReceiveResult(ClientWebSocket webSocket, CancellationToken token)
     {
         KaldiResult? kaldiResult = default;
 
         var bytes = new byte[4096];
-        var receiveTask = ws.ReceiveAsync(new ArraySegment<byte>(bytes), CancellationToken.None);
-        await receiveTask;
-        var receivedString = Encoding.UTF8.GetString(bytes, 0, receiveTask.Result.Count);
+        var receiveTask = await webSocket.ReceiveAsync(new ArraySegment<byte>(bytes), token);
+        var receivedString = Encoding.UTF8.GetString(bytes, 0, receiveTask.Count);
 
         // todo try-catch
         kaldiResult = JsonConvert.DeserializeObject<KaldiResult>(receivedString);
@@ -56,16 +117,10 @@ public class KaldiAdapter : IKaldiAdapter
         return kaldiResult;
     }
 
-    async Task ProcessData(ClientWebSocket ws, byte[] data, int count)
-    {
-        await ws.SendAsync(new ArraySegment<byte>(data, 0, count), WebSocketMessageType.Binary, true, CancellationToken.None);
-        await ReceiveResult(ws);
-    }
-
-    async Task<KaldiResult?> ProcessFinalData(ClientWebSocket ws)
+    async Task<KaldiResult?> ProcessFinalData(ClientWebSocket webSocket, CancellationToken token)
     {
         var eof = Encoding.UTF8.GetBytes("{\"eof\" : 1}");
-        await ws.SendAsync(new ArraySegment<byte>(eof), WebSocketMessageType.Text, true, CancellationToken.None);
-        return await ReceiveResult(ws);
+        await webSocket.SendAsync(new ArraySegment<byte>(eof), WebSocketMessageType.Text, true, CancellationToken.None);
+        return await ReceiveResult(webSocket, token);
     }
 }

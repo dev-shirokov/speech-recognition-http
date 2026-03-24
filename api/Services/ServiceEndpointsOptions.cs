@@ -1,4 +1,4 @@
-﻿namespace api.Controllers;
+﻿namespace api.Services;
 
 public class ServiceEndpointsOptions
 {
