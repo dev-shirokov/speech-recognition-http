@@ -1,5 +1,6 @@
 ﻿using api.Application.Models;
-using api.Infrastructure.Configurations;
+using api.Application.Services;
+using api.Infrastructure.Configurations.Options;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
@@ -7,33 +8,8 @@ using System.Text;
 
 namespace api.Infrastructure.Services;
 
-public interface IKaldiAdapter
+public class KaldiAdapter(IOptions<AsmrOptions> options) : IAsmrAdapter
 {
-    /// <summary>
-    /// Recognize speech from audio file bytes to text
-    /// </summary>
-    /// <param name="file">File from form-data submit</param>
-    /// <param name="token">Cancellation token</param>
-    Task<KaldiResult?> Recognize(byte[] fileBytes, CancellationToken token);
-
-
-    /// <summary>
-    /// Recognize speech audio file stream to text
-    /// </summary>
-    /// <param name="inputStream">Stream of audio file</param>
-    /// <param name="token">Cancellation token</param>
-    /// <returns></returns>
-    Task<KaldiResult?> Recognize(Stream inputStream, CancellationToken token);
-}
-
-public class KaldiAdapter : IKaldiAdapter
-{
-    readonly string _kaldiEndpoint;
-
-    public KaldiAdapter(IOptions<AsmrOptions> serviceEndpointsOptions)
-    {
-        _kaldiEndpoint = serviceEndpointsOptions.Value.Endpoint;
-    }
 
     public async Task<KaldiResult?> Recognize(byte[] fileBytes, CancellationToken token)
     {
@@ -42,7 +18,7 @@ public class KaldiAdapter : IKaldiAdapter
         var ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri(_kaldiEndpoint), token);
+            await ws.ConnectAsync(new Uri(options), token);
 
             await ProcessData(ws, fileBytes, fileBytes.Length, token);
 
@@ -70,7 +46,7 @@ public class KaldiAdapter : IKaldiAdapter
         var ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri(_kaldiEndpoint), token);
+            await ws.ConnectAsync(new Uri(options), token);
 
             await ProcessData(ws, inputStream, token);
 

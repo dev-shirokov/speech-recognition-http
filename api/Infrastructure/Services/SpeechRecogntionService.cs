@@ -1,15 +1,10 @@
-﻿using api.Infrastructure.Configurations;
+﻿using api.Infrastructure.Configurations.Options;
 using MassTransit.Configuration;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using OllamaSharp;
 
 namespace api.Infrastructure.Services;
-
-public interface ISpeechRecognitionService
-{
-    Task<string> ProcessAsync(string speechText, CancellationToken token);
-}
 
 public class SpeechRecognitionService : ISpeechRecognitionService
 {

@@ -1,4 +1,5 @@
-﻿using api.Infrastructure.Consumers;
+﻿using api.Application.Services;
+using api.Infrastructure.Consumers;
 using api.Infrastructure.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace api.Controllers;
 public class TestController(ILogger<TestController> logger,
     IFileService fileService,
     IPublishEndpoint publishEndpoint,
-    IKaldiAdapter kaldiAdapter,
+    IAsmrAdapter kaldiAdapter,
     ISpeechRecognitionService speechRecogntionService) : ControllerBase
 {
     public static Guid UserId = Guid.CreateVersion7();

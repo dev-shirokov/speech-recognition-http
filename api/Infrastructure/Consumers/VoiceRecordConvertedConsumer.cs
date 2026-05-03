@@ -1,4 +1,5 @@
-﻿using api.Consumers;
+﻿using api.Application.Services;
+using api.Consumers;
 using api.Features.VoiceRecordSave;
 using api.Infrastructure.Services;
 using MassTransit;
@@ -16,7 +17,7 @@ public record VoiceRecordConvertedModel(Guid Uuid, Guid UserId)
 class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
     IPublishEndpoint publishEndpoint,
     IMinioClient minioClient,
-    IKaldiAdapter kaldiAdapter,
+    IAsmrAdapter kaldiAdapter,
     ITaskCreatingService taskCreatingService) : IConsumer<VoiceRecordConvertedModel>
 {
     public async Task Consume(ConsumeContext<VoiceRecordConvertedModel> context)

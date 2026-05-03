@@ -1,4 +1,6 @@
+using api.Application.Services;
 using api.Infrastructure.Configurations;
+using api.Infrastructure.Configurations.Options;
 using api.Infrastructure.Consumers;
 using api.Infrastructure.Services;
 using MassTransit;
@@ -16,14 +18,10 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.Configure<S3Options>(builder.Configuration.GetSection(S3Options.Position));
-        builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.Position));
-        builder.Services.Configure<AsmrOptions>(builder.Configuration.GetSection(AsmrOptions.Position));
-        builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.Position));
-
+        builder.AddOptions();        
 
         builder.Services.AddTransient<IFileService, FileService>();
-        builder.Services.AddTransient<IKaldiAdapter, KaldiAdapter>();
+        builder.Services.AddTransient<IAsmrAdapter, KaldiAdapter>();
         builder.Services.AddSingleton<ISpeechRecognitionService, SpeechRecognitionService>();
 
 

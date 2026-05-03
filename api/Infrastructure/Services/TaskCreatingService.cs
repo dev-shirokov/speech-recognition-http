@@ -3,14 +3,6 @@ using api.Domain.Models;
 
 namespace api.Infrastructure.Services;
 
-public interface ITaskCreatingService
-{
-    Task InsertAsync(TaskCreationModel model, CancellationToken cancellationToken);
-    Task InsertVoiceRecordAsync(Guid requestId, Guid userId, string fileName, CancellationToken cancellationToken);
-    Task UpdateVoiceRecordSpeechAsync(Guid id, Guid userId, string recognizeSpeech, CancellationToken cancellationToken);
-    Task UpdateVoiceRecordStatusAsync(Guid id, Guid userId, VoiceRecordSavingStatusEnum status, CancellationToken cancellationToken);
-}
-
 public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContext dbContext) : ITaskCreatingService
 {
     public async Task InsertAsync(TaskCreationModel model, CancellationToken cancellationToken)

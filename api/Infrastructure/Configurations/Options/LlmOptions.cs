@@ -1,4 +1,4 @@
-﻿namespace api.Infrastructure.Configurations;
+﻿namespace api.Infrastructure.Configurations.Options;
 
 public class LlmOptions
 {
