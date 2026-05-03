@@ -1,5 +1,5 @@
-﻿using api.Consumers;
-using api.Services;
+﻿using api.Infrastructure.Consumers;
+using api.Infrastructure.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,16 +7,28 @@ namespace api.Controllers;
 
 [Route("api/test")]
 [ApiController]
-public class TestController(ILogger<TestController> logger, IFileService fileService, IPublishEndpoint publishEndpoint, IKaldiAdapter kaldiAdapter) : ControllerBase
+public class TestController(ILogger<TestController> logger,
+    IFileService fileService,
+    IPublishEndpoint publishEndpoint,
+    IKaldiAdapter kaldiAdapter,
+    ISpeechRecognitionService speechRecogntionService) : ControllerBase
 {
-    public static int UserId = 1;
+    public static Guid UserId = Guid.CreateVersion7();
+
+
+    [HttpPost("/test-llm")]
+    public async Task<IActionResult> Post(string speechText, CancellationToken token)
+    {
+        logger.LogInformation("PUT /test-llm");
+        var result = await speechRecogntionService.ProcessAsync(speechText, token);
+        return Ok(result);
+    }
 
     [HttpPut("/test-mq")]
     public async Task<IActionResult> Post(CancellationToken token)
     {
         logger.LogInformation("PUT /test-mq");
-        var record = new ThreeGppVoiceRecord(Guid.CreateVersion7(), UserId, 0);
-        await publishEndpoint.Publish<VoiceRecordSaved>(new VoiceRecordSaved(record.Uuid, UserId, record.ObjectName));
+        await publishEndpoint.Publish<VoiceRecordSavedModel>(new VoiceRecordSavedModel(Guid.CreateVersion7(), UserId));
         return Accepted();
     }
 

@@ -1,19 +1,38 @@
-﻿using api.Models;
+﻿using api.Application.Models;
+using api.Infrastructure.Configurations;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net.WebSockets;
 using System.Text;
 
-namespace api.Services;
+namespace api.Infrastructure.Services;
+
+public interface IKaldiAdapter
+{
+    /// <summary>
+    /// Recognize speech from audio file bytes to text
+    /// </summary>
+    /// <param name="file">File from form-data submit</param>
+    /// <param name="token">Cancellation token</param>
+    Task<KaldiResult?> Recognize(byte[] fileBytes, CancellationToken token);
+
+
+    /// <summary>
+    /// Recognize speech audio file stream to text
+    /// </summary>
+    /// <param name="inputStream">Stream of audio file</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns></returns>
+    Task<KaldiResult?> Recognize(Stream inputStream, CancellationToken token);
+}
 
 public class KaldiAdapter : IKaldiAdapter
 {
     readonly string _kaldiEndpoint;
 
-    public KaldiAdapter(IOptions<ServiceEndpointsOptions> serviceEndpointsOptions)
+    public KaldiAdapter(IOptions<AsmrOptions> serviceEndpointsOptions)
     {
-        _kaldiEndpoint = serviceEndpointsOptions.Value.VoskKaldiRu;
+        _kaldiEndpoint = serviceEndpointsOptions.Value.Endpoint;
     }
 
     public async Task<KaldiResult?> Recognize(byte[] fileBytes, CancellationToken token)

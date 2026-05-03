@@ -1,5 +1,4 @@
-﻿
-namespace api.Services;
+﻿namespace api.Infrastructure.Services;
 
 /// <summary>
 /// Сервис загрузки файлов из S3.

@@ -1,9 +1,10 @@
-using api.Consumers;
-using api.Services;
+using api.Infrastructure.Configurations;
+using api.Infrastructure.Consumers;
+using api.Infrastructure.Services;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Minio;
-using Quartz.Impl.AdoJobStore.Common;
 
 internal class Program
 {
@@ -15,18 +16,23 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-
         builder.Services.Configure<S3Options>(builder.Configuration.GetSection(S3Options.Position));
-        builder.Services.Configure<ServiceEndpointsOptions>(builder.Configuration.GetSection(ServiceEndpointsOptions.Position));
+        builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.Position));
+        builder.Services.Configure<AsmrOptions>(builder.Configuration.GetSection(AsmrOptions.Position));
+        builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.Position));
 
 
         builder.Services.AddTransient<IFileService, FileService>();
         builder.Services.AddTransient<IKaldiAdapter, KaldiAdapter>();
+        builder.Services.AddSingleton<ISpeechRecognitionService, SpeechRecognitionService>();
 
 
-        var sp = builder.Services.BuildServiceProvider();
+        var connection = builder.Configuration.GetConnectionString("pgsql");
+        builder.Services.AddDbContext<MyDbContext>(options => options.UseNpgsql(connection));
 
-        var s3options = sp.GetRequiredService<IOptions<S3Options>>().Value;
+
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        var s3options = serviceProvider.GetRequiredService<IOptions<S3Options>>().Value;
 
         builder.Services.AddMinio(configureClient =>
         {
@@ -37,26 +43,29 @@ internal class Program
                 .Build();
         });
 
-
+        var rabbitMqOptions = serviceProvider.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
         builder.Services.AddMassTransit(x =>
         {
-
             x.SetKebabCaseEndpointNameFormatter();
             x.AddConsumer<VoiceRecordSavedConsumer>();
             x.AddConsumer<VoiceRecordConvertedConsumer>();
+            x.AddConsumer<VoiceRecordRecognizedConsumer>();
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host("localhost", "/", h =>
+                cfg.Host(rabbitMqOptions.Endpoint, "/", h =>
                 {
-                    h.Username("root");
-                    h.Password("Zud3OY=rouz85W");
+                    h.Username(rabbitMqOptions.Username);
+                    h.Password(rabbitMqOptions.Password);
                 });
 
-                cfg.ReceiveEndpoint("voice-record-saved", 
+                cfg.ReceiveEndpoint("voice-record-saved",
                     ep => ep.ConfigureConsumer<VoiceRecordSavedConsumer>(context));
 
-                cfg.ReceiveEndpoint("voice-record-converted", 
+                cfg.ReceiveEndpoint("voice-record-converted",
                     ep => ep.ConfigureConsumer<VoiceRecordConvertedConsumer>(context));
+
+                cfg.ReceiveEndpoint("voice-record-recognized",
+                    ep => ep.ConfigureConsumer<VoiceRecordRecognizedConsumer>(context));
             });
         });
 

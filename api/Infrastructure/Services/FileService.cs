@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using api.Infrastructure.Configurations;
+using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using System.IO;
 
-namespace api.Services;
+namespace api.Infrastructure.Services;
 
 public class FileService(ILogger<IFileService> logger, IMinioClient minioClient, IOptions<S3Options> s3Config) : IFileService
 {

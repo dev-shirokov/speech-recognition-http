@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 
-namespace api.Services;
+namespace api.Infrastructure.Services;
 
 public class ThreeGppToWaveFfmpegConverter() : IConverter
 {
