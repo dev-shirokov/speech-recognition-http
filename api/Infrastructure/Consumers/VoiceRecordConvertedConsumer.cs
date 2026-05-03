@@ -1,7 +1,5 @@
-﻿using api.Application.Services;
-using api.Consumers;
-using api.Features.VoiceRecordSave;
-using api.Infrastructure.Services;
+﻿using api.Application.Features.VoiceRecordSave;
+using api.Application.Services;
 using MassTransit;
 using Minio;
 using Minio.DataModel.Args;

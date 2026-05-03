@@ -1,5 +1,5 @@
-﻿using api.Controllers;
-using api.Features.VoiceRecordSave;
+﻿using api.Application.Features.VoiceRecordSave;
+using api.Application.Services;
 using api.Infrastructure.Services;
 using MassTransit;
 using Minio;

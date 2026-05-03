@@ -1,6 +1,6 @@
-﻿using api.Consumers;
-using api.Features.VoiceRecordSave;
-using api.Infrastructure.Services;
+﻿using api.Application.Features.VoiceRecordSave;
+using api.Application.Services;
+using api.Infrastructure.Consumers;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Requestum;

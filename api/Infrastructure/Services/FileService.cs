@@ -1,4 +1,5 @@
-﻿using api.Infrastructure.Configurations;
+﻿using api.Application.Services;
+using api.Infrastructure.Configurations.Options;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;

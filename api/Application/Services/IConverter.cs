@@ -1,4 +1,4 @@
-﻿namespace api.Infrastructure.Services;
+﻿namespace api.Application.Services;
 
 public interface IConverter
 {

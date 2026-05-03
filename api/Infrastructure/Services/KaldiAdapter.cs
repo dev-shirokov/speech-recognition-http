@@ -18,7 +18,7 @@ public class KaldiAdapter(IOptions<AsmrOptions> options) : IAsmrAdapter
         var ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri(options), token);
+            await ws.ConnectAsync(new Uri(options.Value.Endpoint), token);
 
             await ProcessData(ws, fileBytes, fileBytes.Length, token);
 
@@ -46,7 +46,7 @@ public class KaldiAdapter(IOptions<AsmrOptions> options) : IAsmrAdapter
         var ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri(options), token);
+            await ws.ConnectAsync(new Uri(options.Value.Endpoint), token);
 
             await ProcessData(ws, inputStream, token);
 

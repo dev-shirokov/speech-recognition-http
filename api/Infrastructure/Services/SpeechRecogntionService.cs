@@ -1,4 +1,5 @@
-﻿using api.Infrastructure.Configurations.Options;
+﻿using api.Application.Services;
+using api.Infrastructure.Configurations.Options;
 using MassTransit.Configuration;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
