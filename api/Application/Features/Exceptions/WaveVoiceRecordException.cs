@@ -1,4 +1,4 @@
-﻿namespace api.Application.Features.VoiceRecordSave;
+﻿namespace api.Application.Features.Exceptions;
 
 public class WaveVoiceRecordException : Exception
 {

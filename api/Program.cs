@@ -2,6 +2,7 @@ using api.Application.Services;
 using api.Infrastructure.Configurations;
 using api.Infrastructure.Configurations.Options;
 using api.Infrastructure.Consumers;
+using api.Infrastructure.Persist;
 using api.Infrastructure.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

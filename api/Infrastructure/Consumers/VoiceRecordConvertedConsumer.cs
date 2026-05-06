@@ -1,9 +1,10 @@
-﻿using api.Application.Features.VoiceRecordSave;
+﻿using api.Application.Features.Exceptions;
 using api.Application.Services;
 using MassTransit;
 using Minio;
 using Minio.DataModel.Args;
 using System.Diagnostics;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace api.Infrastructure.Consumers;
 
@@ -12,6 +13,7 @@ public record VoiceRecordConvertedModel(Guid Uuid, Guid UserId)
     public string WaveObjectName => $"{UserId}_{Uuid}.wav";
     public override string ToString() => $"Uuid: {Uuid}, UserId: {UserId}";
 };
+
 class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
     IPublishEndpoint publishEndpoint,
     IMinioClient minioClient,
@@ -26,7 +28,10 @@ class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
 
         try
         {
-            recognizeSpeech = await RecognizeVoiceRecord(context.Message.WaveObjectName, context.CancellationToken);
+            recognizeSpeech = await RecognizeVoiceRecord(context.Message.WaveObjectName, context.CancellationToken); 
+            
+            logger.LogInformation($"Voice record recognized. {context.Message}. Recognized: '{recognizeSpeech}'. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
+
         }
         catch (Exception e)
         {
@@ -38,7 +43,8 @@ class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
             try
             {
                 await taskCreatingService.UpdateVoiceRecordSpeechAsync(context.Message.Uuid, context.Message.UserId, recognizeSpeech, context.CancellationToken);
-                // todo log
+
+                logger.LogInformation($"Voice record metadata saved in persist storage. {context.Message}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
             }
             catch (Exception e)
             {

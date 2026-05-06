@@ -1,6 +1,8 @@
-﻿using api.Application.Services;
+﻿using api.Application.Features.Exceptions;
+using api.Application.Services;
 using api.Infrastructure.Services;
 using Requestum.Contract;
+using System.Diagnostics;
 
 namespace api.Application.Features.VoiceRecordSave;
 
@@ -21,12 +23,13 @@ public class SaveVoiceRecordHandler(ILogger<SaveVoiceRecordHandler> logger, ITas
 {
     public async Task ExecuteAsync(SaveVoiceRecordCommand command, CancellationToken cancellationToken = default)
     {
+        var stopwatch = new Stopwatch();
         // 1.
         try
         {
             await fileService.Save(new PutObjectModel(command.FileStream, command.FileName, command.FileContentType), cancellationToken);
             
-            logger.LogInformation($"Voice record (3gp) saved in s3 storage. FileName: {command.FileName}, FileContentType: {command.FileContentType}, FileLength: {command.FileLength}");
+            logger.LogInformation($"Voice record (3gp) saved in s3 storage. FileName: {command.FileName}, FileContentType: {command.FileContentType}, FileLength: {command.FileLength}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
         catch (Exception e)
         {
@@ -36,9 +39,10 @@ public class SaveVoiceRecordHandler(ILogger<SaveVoiceRecordHandler> logger, ITas
         // 2.
         try
         {
+            var ms = stopwatch.ElapsedMilliseconds;
             await taskCreationService.InsertVoiceRecordAsync(command.RequestId, command.UserId, command.FileName, cancellationToken);
             
-            logger.LogInformation($"Voice record (3gp) metadata saved in database. FileName: {command.FileName}, FileContentType: {command.FileContentType}, FileLength: {command.FileLength}");
+            logger.LogInformation($"Voice record (3gp) metadata saved in persist storage. FileName: {command.FileName}, FileContentType: {command.FileContentType}, FileLength: {command.FileLength}. Elapsed: {stopwatch.ElapsedMilliseconds - ms} ms");
         }
         catch (Exception e)
         {

@@ -13,6 +13,7 @@ public class TaskEntity
     public DateTime? DueDateTime { get; set; }
     public Guid UserId { get; set; }
     public required DateTime Dtc { get; set; }
+    public Guid VoiceRecordId { get; set; }
 }
 
 public enum TaskPriorityEnum

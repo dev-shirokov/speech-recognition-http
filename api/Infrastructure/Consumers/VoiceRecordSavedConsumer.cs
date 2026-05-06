@@ -1,4 +1,4 @@
-﻿using api.Application.Features.VoiceRecordSave;
+﻿using api.Application.Features.Exceptions;
 using api.Application.Services;
 using api.Infrastructure.Services;
 using MassTransit;
@@ -24,6 +24,8 @@ public class VoiceRecordSavedConsumer(ILogger<VoiceRecordSavedConsumer> logger, 
         try
         {
             await ConvertAndSaveInMediaStorage(context.Message, context.CancellationToken);
+
+            logger.LogInformation($"Voice record saved in s3 storage. {context.Message}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
         catch (Exception e)
         {
@@ -33,6 +35,8 @@ public class VoiceRecordSavedConsumer(ILogger<VoiceRecordSavedConsumer> logger, 
         try
         {
             await SaveMetadata(context.Message.RequestId, context.Message.UserId, context.CancellationToken);
+
+            logger.LogInformation($"Voice record saved in persist storage. {context.Message}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
         }
         catch (Exception e)
         {

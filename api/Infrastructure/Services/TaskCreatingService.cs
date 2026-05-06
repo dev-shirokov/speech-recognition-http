@@ -1,6 +1,7 @@
 ﻿using api.Application.Services;
 using api.Domain;
 using api.Domain.Models;
+using api.Infrastructure.Persist;
 
 namespace api.Infrastructure.Services;
 
@@ -8,7 +9,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
 {
     public async Task InsertAsync(TaskCreationModel model, CancellationToken cancellationToken)
     {
-        TaskEntity entity = new TaskEntity
+        TaskEntity entity = new()
         {
             Description = model.Description,
             DueDateTime = model.DueDate,
@@ -27,7 +28,6 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
     {
         VoiceRecordEntity entity = new VoiceRecordEntity
         {
-
             Id = id,
             UserId = userId,
             Path = fileName,
@@ -42,7 +42,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
     {
         var entity = dbContext.VoiceRecords.FirstOrDefault(x => x.Id == id && x.UserId == userId);
         if (entity is null)
-            throw new ArgumentNullException(nameof(VoiceRecordEntity));
+            throw new EntityNotFoundException(nameof(VoiceRecordEntity));
 
         entity.Status = status;
         dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
@@ -53,7 +53,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
     {
         var entity = dbContext.VoiceRecords.FirstOrDefault(x => x.Id == id && x.UserId == userId);
         if (entity is null)
-            throw new ArgumentNullException(nameof(VoiceRecordEntity));
+            throw new EntityNotFoundException(nameof(VoiceRecordEntity));
 
         entity.RecognizeSpeech = recognizeSpeech;
         dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;

@@ -1,7 +1,9 @@
-﻿using api.Application.Features.VoiceRecordSave;
+﻿using api.Application.Features.Exceptions;
+using api.Application.Features.VoiceRecordSave;
 using api.Application.Services;
 using api.Domain.Models;
 using MassTransit;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace api.Infrastructure.Consumers;
@@ -20,39 +22,34 @@ public class VoiceRecordRecognizedConsumer(ILogger<VoiceRecordRecognizedConsumer
         if (!string.IsNullOrEmpty(recognizeText))
         {
             var jsonStringResult = await recognitionService.ProcessAsync(recognizeText, context.CancellationToken);
-            if (!string.IsNullOrEmpty(jsonStringResult))
+            if (string.IsNullOrEmpty(jsonStringResult))
             {
-                TaskCreationModel? model = default;
+                logger.LogWarning($"Recognized speech is null or empty. {context.Message}");
+                return;
+            }
 
-                try
+            TaskCreationModel? model = default;
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                model = JsonSerializer.Deserialize<TaskCreationModel>(jsonStringResult);
+                if (model is null)
                 {
-                    model = JsonSerializer.Deserialize<TaskCreationModel>(jsonStringResult);
-                    if(model is null)
-                    {
-                        throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, null);
-                    }
+                    throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, null);
                 }
-                catch (Exception e)
-                {
-                    logger.LogError($"Failed to create a json object from the LLM response. Request: {recognizeText}");
-                    //todo handle
-                }
+
+                logger.LogInformation($"Voice record defined intent. {context.Message}. Defined: '{jsonStringResult}'. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
+            }
+            catch (LlmRecognizeSpeechException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, e);
             }
         }
     }
 }
 
-public enum TaskTypeEnum
-{
-    Issue,
-    Goal,
-    Remind
-}
-
-public enum TaskPriorityEnum
-{
-    High,
-    Medium,
-    Low,
-    Unknown
-}
