@@ -1,3 +1,4 @@
+using api.Application.Features;
 using api.Application.Services;
 using api.Infrastructure.Configurations;
 using api.Infrastructure.Configurations.Options;
@@ -24,7 +25,9 @@ internal class Program
         builder.Services.AddTransient<IFileService, FileService>();
         builder.Services.AddTransient<IAsmrAdapter, KaldiAdapter>();
         builder.Services.AddSingleton<ISpeechRecognitionService, SpeechRecognitionService>();
+        builder.Services.AddTransient<ITaskCreatingService, TaskCreatingService>();
 
+        builder.Services.AddHandlers();
 
         var connection = builder.Configuration.GetConnectionString("pgsql");
         builder.Services.AddDbContext<MyDbContext>(options => options.UseNpgsql(connection));

@@ -18,7 +18,7 @@ public record SaveVoiceRecordCommand : ICommand
 }
 
 
-public class SaveVoiceRecordHandler(ILogger<SaveVoiceRecordHandler> logger, ITaskCreatingService taskCreationService, FileService fileService)
+public class SaveVoiceRecordHandler(ILogger<SaveVoiceRecordHandler> logger, ITaskCreatingService taskCreationService, IFileService fileService)
     : IAsyncCommandHandler<SaveVoiceRecordCommand>
 {
     public async Task ExecuteAsync(SaveVoiceRecordCommand command, CancellationToken cancellationToken = default)
