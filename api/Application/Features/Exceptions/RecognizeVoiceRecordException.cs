@@ -45,3 +45,11 @@ public class LlmRecognizeSpeechException : Exception
 
     }
 }
+public class SaveTaskFromVoiceRecordException : Exception
+{
+    public SaveTaskFromVoiceRecordException(Guid id, Guid userId, Exception? e)
+        : base($"Failed save task from voice record in database. Id: {id}, UserId: {userId}", e)
+    {
+
+    }
+}

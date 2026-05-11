@@ -40,7 +40,7 @@ public class SaveVoiceRecordHandler(ILogger<SaveVoiceRecordHandler> logger, ITas
         try
         {
             var ms = stopwatch.ElapsedMilliseconds;
-            await taskCreationService.InsertVoiceRecordAsync(command.RequestId, command.UserId, command.FileName, cancellationToken);
+            await taskCreationService.InsertVoiceRecord(command.RequestId, command.UserId, command.FileName, cancellationToken);
             
             logger.LogInformation($"Voice record (3gp) metadata saved in persist storage. FileName: {command.FileName}, FileContentType: {command.FileContentType}, FileLength: {command.FileLength}. Elapsed: {stopwatch.ElapsedMilliseconds - ms} ms");
         }

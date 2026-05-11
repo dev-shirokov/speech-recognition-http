@@ -42,7 +42,7 @@ class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
         {
             try
             {
-                await taskCreatingService.UpdateVoiceRecordSpeechAsync(context.Message.Uuid, context.Message.UserId, recognizeSpeech, context.CancellationToken);
+                await taskCreatingService.UpdateVoiceRecordSpeech(context.Message.Uuid, context.Message.UserId, recognizeSpeech, context.CancellationToken);
 
                 logger.LogInformation($"Voice record metadata saved in persist storage. {context.Message}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
             }
@@ -56,7 +56,6 @@ class VoiceRecordConvertedConsumer(ILogger<VoiceRecordConvertedConsumer> logger,
                 await publishEndpoint.Publish(new VoiceRecordRecognizedModel(context.Message.Uuid, context.Message.UserId, recognizeSpeech));
 
                 logger.LogInformation($"Recognize speech send in queue 'voice-record-recognized'. {context.Message}");
-
             }
             catch (Exception e)
             {

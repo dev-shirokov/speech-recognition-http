@@ -1,13 +1,20 @@
-﻿namespace api.Domain.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace api.Domain.Models;
 
 public record TaskCreationModel
 {
-    public required TaskTypeEnum Type { get; init; }
-    public required TaskPriorityEnum Priority { get; init; }
-    public required string Title { get; init; }
-    public string? Description { get; init; }
-    public DateTime? DueDate { get; init; }
-    public string? ErrorMessage { get; init; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaskTypeEnum Type { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TaskPriorityEnum? Priority { get; set; }
+    public string Title { get; set; }
+    public string? Description { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string? ErrorMessage { get; set; }
     public Guid UserId { get; set; }
     public Guid? VoiceRecordId { get; set; }
+
+    public override string ToString() 
+        => $"Title: {Title}, type: {Type}, dueDate: {DueDate}, priority: {Priority}, errorMessage: {ErrorMessage}";
 }

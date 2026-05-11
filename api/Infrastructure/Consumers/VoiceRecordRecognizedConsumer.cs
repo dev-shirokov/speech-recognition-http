@@ -1,5 +1,4 @@
 ﻿using api.Application.Features.Exceptions;
-using api.Application.Features.VoiceRecordSave;
 using api.Application.Services;
 using api.Domain.Models;
 using MassTransit;
@@ -13,42 +12,77 @@ public record VoiceRecordRecognizedModel(Guid Uuid, Guid UserId, string Text)
     public override string ToString() => $"Uuid: {Uuid}, UserId: {UserId}, Text: {Text}";
 };
 
-public class VoiceRecordRecognizedConsumer(ILogger<VoiceRecordRecognizedConsumer> logger, ISpeechRecognitionService recognitionService) : IConsumer<VoiceRecordRecognizedModel>
+public class VoiceRecordRecognizedConsumer(ILogger<VoiceRecordRecognizedConsumer> logger, ISpeechRecognitionService recognitionService, ITaskCreatingService taskCreatingService) : IConsumer<VoiceRecordRecognizedModel>
 {
     public async Task Consume(ConsumeContext<VoiceRecordRecognizedModel> context)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         var recognizeText = context.Message.Text;
 
-        if (!string.IsNullOrEmpty(recognizeText))
+        if (string.IsNullOrEmpty(recognizeText))
         {
-            var jsonStringResult = await recognitionService.ProcessAsync(recognizeText, context.CancellationToken);
-            if (string.IsNullOrEmpty(jsonStringResult))
+            var message = $"Passed recognized speech is null or empty. {context.Message}";
+
+            logger.LogWarning(message);
+
+            await taskCreatingService.UpdateVoiceRecordWithError(context.Message.Uuid, context.Message.UserId, Domain.VoiceRecordSavingStatusEnum.SpeechRecognizeError, message, context.CancellationToken);
+
+            return;
+        }
+
+        // speech to json string
+        var jsonRecognizeResult = await recognitionService.ProcessAsync(recognizeText, context.CancellationToken);
+        if (string.IsNullOrEmpty(jsonRecognizeResult))
+        {
+            var message = $"Recognized speech is null or empty. {context.Message}";
+
+            logger.LogWarning(message);
+
+            await taskCreatingService.UpdateVoiceRecordWithError(context.Message.Uuid, context.Message.UserId, Domain.VoiceRecordSavingStatusEnum.JsonRecognizeError, message, context.CancellationToken);
+
+            return;
+        }
+
+        await taskCreatingService.UpdateVoiceRecordJson(context.Message.Uuid, context.Message.UserId, jsonRecognizeResult, context.CancellationToken);
+
+        TaskCreationModel? model = default;
+
+        // json string deserialize in json object
+        try
+        {
+            model = JsonSerializer.Deserialize<TaskCreationModel>(jsonRecognizeResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            // todo handle model is null or errorMessage is not null, throw exception and commit event
+            if (model is null || !string.IsNullOrEmpty(model.ErrorMessage))
             {
-                logger.LogWarning($"Recognized speech is null or empty. {context.Message}");
-                return;
+                throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, null);
             }
 
-            TaskCreationModel? model = default;
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            logger.LogInformation($"Voice record defined intent. {context.Message}. Defined: '{jsonRecognizeResult}'. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
 
-            try
-            {
-                model = JsonSerializer.Deserialize<TaskCreationModel>(jsonStringResult);
-                if (model is null)
-                {
-                    throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, null);
-                }
+            model.UserId = context.Message.UserId;
+            model.VoiceRecordId = context.Message.Uuid;
+        }
+        catch (LlmRecognizeSpeechException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, e);
+        }
 
-                logger.LogInformation($"Voice record defined intent. {context.Message}. Defined: '{jsonStringResult}'. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
-            }
-            catch (LlmRecognizeSpeechException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new LlmRecognizeSpeechException(context.Message.Uuid, context.Message.UserId, e);
-            }
+        try
+        {
+            await taskCreatingService.InsertTask(model, context.CancellationToken);
+
+            logger.LogInformation($"Task created from voice record. Voice record metadata: {context.Message}. Task metadata: {model}. Elapsed: {stopwatch.ElapsedMilliseconds} ms");
+
+        }
+        catch (Exception e)
+        {
+            throw new SaveTaskFromVoiceRecordException(context.Message.Uuid, context.Message.UserId, e);
         }
     }
 }

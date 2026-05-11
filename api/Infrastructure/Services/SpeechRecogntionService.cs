@@ -18,7 +18,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
         _logger = logger;
 
         // Инициализация клиента
-        _chatClient = new OllamaApiClient(new Uri(options.Value.Endpoint), options.Value.Endpoint);
+        _chatClient = new OllamaApiClient(new Uri(options.Value.Endpoint), options.Value.ModelName);
 
         _chatHistory = new List<ChatMessage>();
 
@@ -53,7 +53,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
         }
 
         Всегда отвечай строго в формате JSON, соблюдая все правила написания, без пояснений, комментариев или лишнего текста.
-        Поля заполнять на том языке, на котором разговаривает ползователь.
+        Поля заполнять на том языке, на котором разговаривает пользователь.
         ";
 
 
@@ -69,14 +69,12 @@ public class SpeechRecognitionService : ISpeechRecognitionService
             // Добавляем запрос пользователя в историю
             _chatHistory.Add(new ChatMessage(ChatRole.User, speechText));
 
-            Console.WriteLine("Обработка запроса: {0}", speechText);
-
             // Отправляем запрос и получаем ответ
             var response = await _chatClient.GetResponseAsync(_chatHistory, cancellationToken: token);
 
             var result = string.Join(". ", response.Messages.Select(x => x.Text));
 
-            Console.WriteLine("Ответ: {0}", result);
+            _logger.LogDebug("Запрос: '{0}'\nОтвет: {1}", speechText, result);
 
             // Добавляем ответ ассистента в историю
             _chatHistory.Add(new ChatMessage(ChatRole.Assistant, result));

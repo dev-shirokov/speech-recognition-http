@@ -11,6 +11,8 @@ public class VoiceRecordEntity
     public required string Path { get; set; }
     public VoiceRecordSavingStatusEnum Status { get; set; }
     public string? RecognizeSpeech { get; set; }
+    public string? RecognizeJson { get; set; }
+    public string? ErrorMessage { get; set; }
 }
 
 public enum VoiceRecordSavingStatusEnum
@@ -18,5 +20,8 @@ public enum VoiceRecordSavingStatusEnum
     None,
     ThreeGppSaved,
     WaveSaved,
-    Recognized
+    SpeechRecognized,
+    SpeechRecognizeError,
+    JsonRecognized, 
+    JsonRecognizeError
 }

@@ -60,7 +60,7 @@ public class VoiceRecordSavedConsumer(ILogger<VoiceRecordSavedConsumer> logger, 
 
     private Task SaveMetadata(Guid requestId, Guid userId, CancellationToken token)
     {
-        return taskCreatingService.UpdateVoiceRecordStatusAsync(requestId, userId, Domain.VoiceRecordSavingStatusEnum.WaveSaved, token);
+        return taskCreatingService.UpdateVoiceRecordStatus(requestId, userId, Domain.VoiceRecordSavingStatusEnum.WaveSaved, token);
     }
 
     private async Task ConvertAndSaveInMediaStorage(VoiceRecordSavedModel model, CancellationToken token)
