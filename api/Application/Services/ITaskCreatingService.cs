@@ -5,7 +5,9 @@ namespace api.Application.Services;
 
 public interface ITaskCreatingService
 {
-    Task InsertTask(TaskCreationModel model, CancellationToken cancellationToken);
+    Task<TaskEntity?> Get(Guid id, Guid userId, CancellationToken cancellationToken);
+    Task<TaskCreatingStatus?> GetCreationStatus(Guid id, CancellationToken cancellationToken);
+    Task InsertTask(TaskCreatingModel model, CancellationToken cancellationToken);
     Task InsertVoiceRecord(Guid requestId, Guid userId, string fileName, CancellationToken cancellationToken);
     Task UpdateVoiceRecordJson(Guid id, Guid userId, string recognizeJson, CancellationToken cancellationToken);
     Task UpdateVoiceRecordSpeech(Guid id, Guid userId, string recognizeSpeech, CancellationToken cancellationToken);

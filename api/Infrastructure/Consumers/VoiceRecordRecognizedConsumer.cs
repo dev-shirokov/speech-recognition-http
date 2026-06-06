@@ -46,12 +46,12 @@ public class VoiceRecordRecognizedConsumer(ILogger<VoiceRecordRecognizedConsumer
 
         await taskCreatingService.UpdateVoiceRecordJson(context.Message.Uuid, context.Message.UserId, jsonRecognizeResult, context.CancellationToken);
 
-        TaskCreationModel? model = default;
+        TaskCreatingModel? model = default;
 
         // json string deserialize in json object
         try
         {
-            model = JsonSerializer.Deserialize<TaskCreationModel>(jsonRecognizeResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            model = JsonSerializer.Deserialize<TaskCreatingModel>(jsonRecognizeResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             // todo handle model is null or errorMessage is not null, throw exception and commit event
             if (model is null || !string.IsNullOrEmpty(model.ErrorMessage))

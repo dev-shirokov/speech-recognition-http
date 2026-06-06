@@ -2,13 +2,17 @@
 using api.Domain;
 using api.Domain.Models;
 using api.Infrastructure.Persist;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Infrastructure.Services;
 
 public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContext dbContext) : ITaskCreatingService
 {
+    public async Task<TaskEntity?> Get(Guid id, Guid userId, CancellationToken cancellationToken)
+    {
+        var task = await dbContext.Tasks.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+        return task;
+    }
 
     public async Task InsertVoiceRecord(Guid id, Guid userId, string fileName, CancellationToken cancellationToken)
     {
@@ -32,7 +36,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
 
         entity.Status = status;
 
-        dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        dbContext.Entry(entity).State = EntityState.Modified;
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -44,7 +48,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
 
         entity.RecognizeSpeech = recognizeSpeech;
 
-        dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        dbContext.Entry(entity).State = EntityState.Modified;
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -57,7 +61,7 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
         entity.RecognizeJson = recognizeJson;
         entity.Status = VoiceRecordSavingStatusEnum.JsonRecognized;
 
-        dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        dbContext.Entry(entity).State = EntityState.Modified;
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -70,13 +74,13 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
         entity.ErrorMessage = errorMessage;
         entity.Status = status;
 
-        dbContext.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        dbContext.Entry(entity).State = EntityState.Modified;
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task InsertTask(TaskCreationModel model, CancellationToken cancellationToken)
+    public async Task InsertTask(TaskCreatingModel model, CancellationToken cancellationToken)
     {
-        TaskEntity entity = new()
+        var entity = new TaskEntity
         {
             Description = model.Description,
             DueDateTime = model.DueDate,
@@ -87,8 +91,19 @@ public class TaskCreatingService(ILogger<TaskCreatingService> logger, MyDbContex
             TaskType = model.Type,
             VoiceRecordId = model.VoiceRecordId
         };
-
         await dbContext.Tasks.AddAsync(entity, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        var voiceRecordEntity = await dbContext.VoiceRecords.Where(x => x.Id == model.VoiceRecordId).ExecuteUpdateAsync(x =>
+        {
+            x.SetProperty(x => x.Status, VoiceRecordSavingStatusEnum.TaskSaved);
+            x.SetProperty(x => x.TaskId, entity.Id);
+        });
+    }
+
+    public async Task<TaskCreatingStatus?> GetCreationStatus(Guid id, CancellationToken cancellationToken)
+    {
+        var voiceRecordEntity = await dbContext.VoiceRecords.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        return voiceRecordEntity is not null ? new TaskCreatingStatus(id, voiceRecordEntity?.Id, voiceRecordEntity.Status.ToString(), voiceRecordEntity.ErrorMessage) : null;
     }
 }

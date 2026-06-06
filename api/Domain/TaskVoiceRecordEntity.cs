@@ -23,5 +23,6 @@ public enum VoiceRecordSavingStatusEnum
     SpeechRecognized,
     SpeechRecognizeError,
     JsonRecognized, 
-    JsonRecognizeError
+    JsonRecognizeError,
+    TaskSaved
 }

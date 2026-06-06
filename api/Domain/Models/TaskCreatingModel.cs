@@ -2,7 +2,7 @@
 
 namespace api.Domain.Models;
 
-public record TaskCreationModel
+public record TaskCreatingModel
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public TaskTypeEnum Type { get; set; }
