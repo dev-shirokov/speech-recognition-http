@@ -6,7 +6,7 @@
     <ProjectGuid>ccc781ef-aae5-4c7c-b9db-bfa87a5f46be</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>speech.api</DockerServiceName>
+    <DockerServiceName>speechrecognitivehttp</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.yml" />

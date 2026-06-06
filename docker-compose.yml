@@ -1,27 +1,106 @@
-version: '3.4'
-
 services:
-
-  api:
-    container_name: api
+  speech-recognition-http:
+    image: speech-recognitive-http:latest
+    container_name: speech-recognition-http
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=P@ssw0rd
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - ServiceEndpoints__VoskKaldiRu=ws://kaldi.ru.websocket:2700/
-    image: ${DOCKER_REGISTRY-}speechapi
-    build:
-      context: .
-      dockerfile: api/Dockerfile
-    depends_on:
-      - kaldi.ru.websocket
+      ASPNETCORE_URLS: https://+:443;http://+:80
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "Zud3OY=rouz85W"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+      RabbitMq__Endpoint: rabbitmq
+      PgSql__Endpoint: postgres
+      S3__Endpoint: minio
+      ASMR__Endpoint: vosk
+      LLM__Endpoint: ollama
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
+      - "443:443"      
     volumes:
-      - C:/Users/ximlr/.aspnet/https:/https/  
+      - "C:/docker-volumes/certs/https:/https:ro"
+    depends_on:
+      - rabbitmq
 
-  kaldi.ru.websocket:
-    container_name: kaldi.ws
-    image: alphacep/kaldi-ru:latest    
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: Zud3OY=rouz85W
+      POSTGRES_DB: todolio_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - "C:/docker-volumes/pgsql:/var/lib/postgresql/data/pgdata"
+    restart: unless-stopped
+  
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-dev.shirokov@gmail.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-Zud3OY=rouz85W}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - "C:/docker-volumes/pgadmin:/var/lib/pgadmin"
+    ports:
+      - "${PGADMIN_PORT:-15432}:80"
+    restart: unless-stopped
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-01-11T07-46-16Z
+    container_name: minio_container
+    ports:
+      - "9000:9000"    # API
+      - "9001:9001"    # Console
+    volumes:
+      - "C:/docker-volumes/minio:/data"
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: Zud3OY=rouz85W  # > 8 символов!
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_container
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=Zud3OY=rouz85W
+    volumes:
+      - "C:/docker-volumes/rabbitmq:/var/lib/rabbitmq"
+
+  ollama:
+    image: ollama/ollama:rocm
+    container_name: ollama_container
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - "C:/docker-volumes/ollama:/root/.ollama"
+      - /usr/lib/wsl/lib/libdxcore.so:/usr/lib/libdxcore.so
+      - /opt/rocm/lib/libhsa-runtime64.so.1:/opt/rocm/lib/libhsa-runtime64.so.1
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - OLLAMA_HOST=0.0.0.0
+    devices:
+      - /dev/dxg
+  
+  vosk:
+    image: alphacep/kaldi-ru:latest
+    container_name: voskkaldiru_container
+    restart: unless-stopped
+    ports:
+      - "2700:2700"
+
+volumes:
+  minio_data:
+    driver: local

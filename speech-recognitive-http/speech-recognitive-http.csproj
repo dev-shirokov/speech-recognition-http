@@ -10,18 +10,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Application\Models\Kaldi\**" />
-	  <Content Remove="Application\Models\Kaldi\**" />
-	  <EmbeddedResource Remove="Application\Models\Kaldi\**" />
-	  <None Remove="Application\Models\Kaldi\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="AWSSDK.S3" Version="4.0.19" />
 		<PackageReference Include="FFMpegCore" Version="5.4.0" />
-		<PackageReference Include="MassTransit" Version="9.0.1" />
+		<PackageReference Include="MassTransit" Version="8.5.10" />
 		<PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
-		<PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
+		<PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
