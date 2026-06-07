@@ -20,7 +20,7 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.AddOptions();        
+        builder.AddOptions();
 
         builder.Services.AddTransient<IFileService, FileService>();
         builder.Services.AddTransient<IAsmrAdapter, KaldiAdapter>();
@@ -73,12 +73,8 @@ internal class Program
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
 

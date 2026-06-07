@@ -3,7 +3,7 @@ services:
     image: speech-recognitive-http:latest
     container_name: speech-recognition-http
     environment:
-      ASPNETCORE_URLS: https://+:443;http://+:80
+      ASPNETCORE_URLS: https://+:8081;http://+:8080
       ASPNETCORE_Kestrel__Certificates__Default__Password: "Zud3OY=rouz85W"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
       RabbitMq__Endpoint: rabbitmq
@@ -12,8 +12,8 @@ services:
       ASMR__Endpoint: vosk
       LLM__Endpoint: ollama
     ports:
-      - "80:80"
-      - "443:443"      
+      - "80:8080"
+      - "443:8081"      
     volumes:
       - "C:/docker-volumes/certs/https:/https:ro"
     depends_on:
