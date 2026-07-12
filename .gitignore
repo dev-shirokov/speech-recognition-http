@@ -348,4 +348,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-api/dist/ffmpeg/ffmpeg.exe
+
+# custom
+speech-recognitive-http/dist/ffmpeg/ffmpeg.exe
